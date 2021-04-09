@@ -38,10 +38,10 @@ ENV PATH="${ARM_GCC_INSTALL_FOLDER}/bin:${PATH}"
 
 # make some useful symlinks that are expected to exist
 RUN cd /usr/bin                                                                          && \
-	  ln -s idle3 idle                                                                     && \
-	  ln -s pydoc3 pydoc                                                                   && \
-	  ln -s python3 python                                                                 && \
-	  ln -s python3-config python-config                                                   && \
+    ln -s idle3 idle                                                                     && \
+    ln -s pydoc3 pydoc                                                                   && \
+    ln -s python3 python                                                                 && \
+    ln -s python3-config python-config                                                   && \
     ln -s /arm_gcc/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-addr2line        && \            
     ln -s /arm_gcc/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-ar               && \            
     ln -s /arm_gcc/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-as               && \            
@@ -74,9 +74,3 @@ RUN cd /usr/bin                                                                 
     ln -s /arm_gcc/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-size             && \
     ln -s /arm_gcc/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-strings          && \
     ln -s /arm_gcc/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-strip
-
-RUN useradd -rm -d /src -s /bin/bash -g root -G sudo -u 1000 build
-RUN chown -R build:root /src
-RUN chmod -R g+rw /src
-USER build
-WORKDIR /src
