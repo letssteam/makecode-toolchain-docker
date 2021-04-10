@@ -77,7 +77,7 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       - name: Push image
         run: |
-          IMAGE_ID=${{ github.repository }}/$IMAGE_NAME
+          IMAGE_ID=nedseb/$IMAGE_NAME
 
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
