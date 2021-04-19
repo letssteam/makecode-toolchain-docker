@@ -5,7 +5,7 @@ FROM mcr.microsoft.com/vscode/devcontainers/cpp:0-${VARIANT}
 # Options for setup script
 ARG INSTALL_ZSH="true"
 ARG UPGRADE_PACKAGES="true"
-ARG USERNAME=vscode
+ARG USERNAME=node
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
@@ -22,7 +22,9 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     apt-get install -y -q \
       clang-tidy \
       clang-format \
-      git \
+      openocd \
+      ncurses-dev \
+      libudev-dev \
       python3 && \
     apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 # Install the last GCC from ARM
@@ -82,7 +84,12 @@ RUN cd /usr/bin                                                                 
     ln -s /arm_gcc/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-size             && \
     ln -s /arm_gcc/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-strings          && \
     ln -s /arm_gcc/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-strip
-    
+
+# This is required to get arm-none-eabi-gdb working
+RUN  cd /usr/lib/x86_64-linux-gnu && \
+    ln -s libncurses.so.6.2 libncurses.so.5 && \
+    ln -s libtinfo.so.6.2 libtinfo.so.5
+
 ENV NODE_VERSION 14.16.1
 
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
@@ -145,4 +152,27 @@ RUN set -ex \
   && rm yarn-v$YARN_VERSION.tar.gz.asc yarn-v$YARN_VERSION.tar.gz \
   # smoke test
   && yarn --version
-    
+  
+  # Install needed packages, yarn, nvm and setup non-root user. Use a separate RUN statement to add your own dependencies.
+ARG NPM_GLOBAL=/usr/local/share/npm-global
+ENV NVM_DIR=/usr/local/share/nvm
+ENV NVM_SYMLINK_CURRENT=true \ 
+    PATH=${NPM_GLOBAL}/bin:${NVM_DIR}/current/bin:${PATH}
+
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    # Remove imagemagick due to https://security-tracker.debian.org/tracker/CVE-2019-10131
+    && apt-get purge -y imagemagick imagemagick-6-common \
+    # Configure global npm install location, use group to adapt to UID/GID changes
+    && if ! cat /etc/group | grep -e "^npm:" > /dev/null 2>&1; then groupadd -r npm; fi \
+    && usermod -a -G npm ${USERNAME} \
+    && umask 0002 \
+    && mkdir -p ${NPM_GLOBAL} \
+    && chown ${USERNAME}:npm ${NPM_GLOBAL} \
+    && chmod g+s ${NPM_GLOBAL} \
+    && npm config -g set prefix ${NPM_GLOBAL} \
+    && sudo -u ${USERNAME} npm config -g set prefix ${NPM_GLOBAL} \
+    # Install eslint
+    && su ${USERNAME} -c "umask 0002 && npm install -g eslint" \
+    && npm cache clean --force > /dev/null 2>&1 \
+    # Clean up
+    && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /root/.gnupg /tmp/library-scripts
