@@ -159,11 +159,7 @@ ENV NVM_DIR=/usr/local/share/nvm
 ENV NVM_SYMLINK_CURRENT=true \ 
     PATH=${NPM_GLOBAL}/bin:${NVM_DIR}/current/bin:${PATH}
 
-RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    # Remove imagemagick due to https://security-tracker.debian.org/tracker/CVE-2019-10131
-    && apt-get purge -y imagemagick imagemagick-6-common \
-    # Configure global npm install location, use group to adapt to UID/GID changes
-    && if ! cat /etc/group | grep -e "^npm:" > /dev/null 2>&1; then groupadd -r npm; fi \
+RUN if ! cat /etc/group | grep -e "^npm:" > /dev/null 2>&1; then groupadd -r npm; fi \
     && usermod -a -G npm ${USERNAME} \
     && umask 0002 \
     && mkdir -p ${NPM_GLOBAL} \
@@ -171,8 +167,6 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && chmod g+s ${NPM_GLOBAL} \
     && npm config -g set prefix ${NPM_GLOBAL} \
     && sudo -u ${USERNAME} npm config -g set prefix ${NPM_GLOBAL} \
-    # Install eslint
-    && su ${USERNAME} -c "umask 0002 && npm install -g eslint" \
+    && su ${USERNAME} -c "umask 0002 && npm install -g eslint pxt npm" \
     && npm cache clean --force > /dev/null 2>&1 \
-    # Clean up
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /root/.gnupg /tmp/library-scripts
