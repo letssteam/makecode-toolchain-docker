@@ -1,22 +1,30 @@
-FROM ubuntu:rolling
+# [Choice] Debian / Ubuntu version: debian-10, debian-9, ubuntu-20.04, ubuntu-18.04
+ARG VARIANT=ubuntu-20.04
+FROM mcr.microsoft.com/vscode/devcontainers/cpp:0-${VARIANT}
+
+# Options for setup script
+ARG INSTALL_ZSH="true"
+ARG UPGRADE_PACKAGES="true"
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Install needed packages and setup non-root user. Use a separate RUN statement to add your own dependencies.
+COPY library-scripts/*.sh /tmp/library-scripts/
+RUN yes | unminimize 2>&1 \ 
+    && bash /tmp/library-scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}" "true" "true" \
+    && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/library-scripts
 
 # Install any needed packages specified in requirements.txt
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     apt-get update && \
     apt-get upgrade -y -q && \
     apt-get install -y -q \
-      build-essential \
-      make \
-      cmake \
       clang-tidy \
       clang-format \
       git \
-      python3 \
-      bzip2 \
-      ca-certificates \
-      wget \
-      curl && \
-    apt-get clean
+      python3 && \
+    apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 # Install the last GCC from ARM
 ENV ARM_GCC_VERSION 10-2020-q4-major
 ENV ARM_GCC_PATH 10-2020q4
