@@ -71,6 +71,9 @@ ENV NVM_DIR=/usr/local/share/nvm
 ENV NVM_SYMLINK_CURRENT=true \ 
     PATH=${NPM_GLOBAL}/bin:${NVM_DIR}/current/bin:${PATH}
 
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
 RUN if ! cat /etc/group | grep -e "^npm:" > /dev/null 2>&1; then groupadd -r npm; fi \
     && usermod -a -G npm ${USERNAME} \
     && umask 0002 \
