@@ -2,7 +2,7 @@
 ARG VARIANT=ubuntu-20.04
 FROM letssteam/arm-gcc-none-eabi-toolchain:latest
 
-ENV NODE_VERSION 14.16.1
+ENV NODE_VERSION 14.18.2
 
 RUN ARCH= && dpkgArch="$(dpkg --print-architecture)" \
   && case "${dpkgArch##*-}" in \
