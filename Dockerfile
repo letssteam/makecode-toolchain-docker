@@ -19,6 +19,8 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     update-alternatives --install /usr/bin/python-config python-config /usr/bin/python3-config 1 && \
     update-alternatives --install /usr/bin/pydoc pydoc /usr/bin/pydoc3 1 && \
     apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+# Install PyOCD
+RUN python3 -mpip install -U pyocd
 
 # Install Github CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
