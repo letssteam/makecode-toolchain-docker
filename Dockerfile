@@ -22,13 +22,6 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 # Install PyOCD
 RUN python3 -mpip install -U pyocd
 
-# Install Github CLI
-RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && \
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
-    sudo apt update && \
-    sudo apt install gh && \
-    apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
-
 # Install dependency for chromium headless
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     sudo apt update && \
