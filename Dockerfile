@@ -1,12 +1,50 @@
 FROM letssteam/arm-gcc-none-eabi-toolchain:latest
 
+ENV CLANG_VERSION 19
+ENV CLANG_PRIORITY 1
+
+#Install clang
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
+    apt-get update && \
+    apt-get upgrade -y -q && \
+    apt-get install -y -q \
+    lsb-release \
+    wget \
+    software-properties-common \
+    gnupg && \
+    wget https://apt.llvm.org/llvm.sh && \
+    chmod u+x llvm.sh && \
+    ./llvm.sh ${CLANG_VERSION} && \
+    rm -rf ./llvm.sh && \
+    apt-get install -y -q \
+    clang-tidy-${CLANG_VERSION} \
+    clang-format-${CLANG_VERSION} && \
+    update-alternatives \
+        --install /usr/bin/clang                 clang                 /usr/bin/clang-${CLANG_VERSION} ${CLANG_PRIORITY} \
+        --slave   /usr/bin/clang++               clang++               /usr/bin/clang++-${CLANG_VERSION}  \
+        --slave   /usr/bin/asan_symbolize        asan_symbolize        /usr/bin/asan_symbolize-${CLANG_VERSION} \
+        --slave   /usr/bin/c-index-test          c-index-test          /usr/bin/c-index-test-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-check           clang-check           /usr/bin/clang-check-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-cl              clang-cl              /usr/bin/clang-cl-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-cpp             clang-cpp             /usr/bin/clang-cpp-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-format          clang-format          /usr/bin/clang-format-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-format-diff     clang-format-diff     /usr/bin/clang-format-diff-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-import-test     clang-import-test     /usr/bin/clang-import-test-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-include-fixer   clang-include-fixer   /usr/bin/clang-include-fixer-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-offload-bundler clang-offload-bundler /usr/bin/clang-offload-bundler-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-query           clang-query           /usr/bin/clang-query-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-rename          clang-rename          /usr/bin/clang-rename-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-reorder-fields  clang-reorder-fields  /usr/bin/clang-reorder-fields-${CLANG_VERSION} \
+        --slave   /usr/bin/clang-tidy            clang-tidy            /usr/bin/clang-tidy-${CLANG_VERSION} \
+        --slave   /usr/bin/lldb                  lldb                  /usr/bin/lldb-${CLANG_VERSION} \
+        --slave   /usr/bin/lldb-server           lldb-server           /usr/bin/lldb-server-${CLANG_VERSION} && \
+    apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
 # Install any needed packages by codal
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     apt-get update && \
     apt-get upgrade -y -q && \
     apt-get install -y -q \
-    clang-tidy \
-    clang-format \
     openocd \
     ncurses-dev \
     libudev-dev \
