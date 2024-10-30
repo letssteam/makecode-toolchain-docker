@@ -3,6 +3,18 @@ FROM letssteam/arm-gcc-none-eabi-toolchain:latest
 ENV CLANG_VERSION 19
 ENV CLANG_PRIORITY 1
 
+#Install udev
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    cu \
+    curl \
+    make \
+    software-properties-common \
+    tar \
+    udev \
+    usbutils && \
+    apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
 #Install clang
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
     apt-get update && \
@@ -45,6 +57,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     apt-get update && \
     apt-get upgrade -y -q && \
     apt-get install -y -q \
+    cppcheck \
     openocd \
     ncurses-dev \
     libudev-dev \
@@ -57,8 +70,6 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     update-alternatives --install /usr/bin/python-config python-config /usr/bin/python3-config 1 && \
     update-alternatives --install /usr/bin/pydoc pydoc /usr/bin/pydoc3 1 && \
     apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
-# Install PyOCD
-RUN python3 -mpip install -U pyocd
 
 # Install dependency for chromium headless
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections && \
@@ -98,3 +109,13 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
     apt-get autoremove -y && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
+
+# Install PyOCD
+RUN python3 -mpip install -U pyocd
+
+RUN adduser vscode dialout && \
+    adduser vscode plugdev
+
+USER vscode
+RUN pyocd pack install STM32WB55RGVx && \
+    pyocd pack install STM32L475VGTx
